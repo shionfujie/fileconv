@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("\033[F%s is successfully converted to pdf\n", file)
+	fmt.Printf("\033[Fconvert %s: DJVU file converted successfully to PDF file\n", file)
 }
 
 func spinner(delay time.Duration) {
