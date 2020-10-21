@@ -40,7 +40,7 @@ func TestSpinner(t *testing.T) {
 	for i := 0; i < count; i++ {
 		time.Sleep(delta)
 		if rb.String() != expected {
-			t.Errorf("Spinner did not shut down: got %q, expected %q", rb.String(), expected)
+			t.Error("Spinner did not shut down")
 			break
 		}
 	}
