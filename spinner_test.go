@@ -31,8 +31,10 @@ func TestSpinner(t *testing.T) {
 		}
 	}
 	spinner.Stop()
+	// Test tear down escaping
+	expected = fmt.Sprintf("%s\033[F", expected)
 	if rb.String() != expected {
-		t.Errorf("got %q, expected to be unchanged", rb.String())
+		t.Errorf("teardown: got %q, expected %q", rb.String(), expected)
 	}
 	// Now test that the spinner stopped.
 	for i := 0; i < count; i++ {
