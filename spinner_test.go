@@ -19,7 +19,7 @@ func TestSpinner(t *testing.T) {
 		t.Errorf("got %q, expected immediate newline", rb.String())
 	}
 	for i := 0; i < count; i++ {
-		// Wait for spinner to pass first
+		// Wait for spinner to pass first.
 		time.Sleep(delta/ 10)
 		<-ticker.C
 		// Since the terminal is tty, we use ansi escaping to animate
@@ -31,7 +31,7 @@ func TestSpinner(t *testing.T) {
 		}
 	}
 	spinner.Stop()
-	// Test tear down escaping
+	// Test tear down escaping.
 	expected = fmt.Sprintf("%s\033[F", expected)
 	if rb.String() != expected {
 		t.Errorf("teardown: got %q, expected %q", rb.String(), expected)
