@@ -32,6 +32,7 @@ func NewFspinner(w io.Writer, d time.Duration) *Spinner {
 	s := &Spinner{
 		done: make(chan struct{}, 1),
 	}
+	fmt.Fprintln(w)
 	go startSpinner(s, d, w)
 	return s
 }
@@ -41,19 +42,18 @@ func (s *Spinner) Stop() {
 }
 
 func startSpinner(s *Spinner, d time.Duration, w io.Writer) {
-	ticker := time.NewTicker(d)
-	fmt.Fprintln(w)
+	t := time.NewTicker(d)
 loop:
 	for {
 		for _, r := range `-\|/` {
 			select {
-			case <-ticker.C:
+			case <-t.C:
 				fmt.Fprintf(w, "\033[F%c\n", r)
 			case <-s.done:
 				break loop
 			}
 		}
 	}
-	ticker.Stop()
+	t.Stop()
 	fmt.Fprintf(w, "\033[F")
 }
