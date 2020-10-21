@@ -13,20 +13,21 @@ func TestSpinner(t *testing.T) {
 
 	var rb bytes.Buffer
 	spinner := NewFspinner(&rb, delta)
-	ticker := time.NewTicker(delta)
-
+	ticker := spinner.t
 	expected := "\n"
 	if rb.String() != expected {
 		t.Errorf("got %q, expected immediate newline", rb.String())
 	}
 	for i := 0; i < count; i++ {
+		// Wait for spinner to pass first
+		time.Sleep(delta/ 10)
 		<-ticker.C
 		// Since the terminal is tty, we use ansi escaping to animate
 		// a spinner.
 		r := `-\|/`[i%4]
 		expected = fmt.Sprintf("%s\033[F%c\n", expected, r)
 		if rb.String() != expected {
-			t.Errorf("got %q after %d ticks, expected %q", rb.String(), i, expected)
+			t.Errorf("after %d ticks: got %q, expected %q", i, rb.String(), expected)
 		}
 	}
 	spinner.Stop()
@@ -35,9 +36,9 @@ func TestSpinner(t *testing.T) {
 	}
 	// Now test that the spinner stopped.
 	for i := 0; i < count; i++ {
-		<-ticker.C
-		if rb.String() != "" {
-			t.Error("Spinner did not shut down")
+		time.Sleep(delta)
+		if rb.String() != expected {
+			t.Errorf("Spinner did not shut down: got %q, expected %q", rb.String(), expected)
 			break
 		}
 	}
