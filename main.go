@@ -32,7 +32,7 @@ func main() {
 		// Stop the spinner temporarily
 		spinner.Stop()
 		if r.err != nil {
-			fmt.Println(r.err)
+			fmt.Printf("convert %s: failed to convert DJVU file to PDF file: %s\n", r.file, r.err.Error())
 		} else {
 			fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", r.file)
 		}
