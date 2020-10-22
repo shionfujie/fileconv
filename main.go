@@ -10,34 +10,36 @@ import (
 
 type result struct {
 	file string
-	err error
+	err  error
 }
 
 func main() {
 	fileNames := os.Args[1:]
 	c := make(chan result, len(fileNames))
-	
+
+	d := 100 * time.Millisecond
+	spinner := NewSpinner(d)
 	for _, file := range fileNames {
 		go func(file string) {
 			var r result
 			r.file, r.err = file, convert(file)
-			c <-r
+			c <- r
 		}(file)
 	}
 
 	for range fileNames {
-		r := <- c
+		r := <-c
+		// Stop the spinner temporarily
+		spinner.Stop()
 		if r.err != nil {
 			fmt.Println(r.err)
-			continue
+		} else {
+			fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", r.file)
 		}
-		fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", r.file)
+		// Restart a spinner
+		spinner = NewSpinner(d)
 	}
-	
-	// spinner := NewSpinner(100 * time.Millisecond)
-	
-	// spinner.Stop()
-	
+	spinner.Stop()
 }
 
 func convert(file string) error {
