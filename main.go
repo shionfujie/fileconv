@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,12 +14,20 @@ type result struct {
 	err  error
 }
 
+func (r *result) String() string {
+	if r.err != nil {
+		return fmt.Sprintf("convert %s: %v", r.file, r.err)
+	}
+	return fmt.Sprintf("convert %s: DJVU file converted successfully to PDF file", r.file)
+}
+
 func main() {
 	fileNames := os.Args[1:]
 	c := make(chan result, len(fileNames))
 
 	d := 100 * time.Millisecond
 	spinner := NewSpinner(d)
+
 	for _, file := range fileNames {
 		go func(file string) {
 			var r result
@@ -31,11 +40,7 @@ func main() {
 		r := <-c
 		// Stop the spinner temporarily
 		spinner.Stop()
-		if r.err != nil {
-			fmt.Printf("convert %s: failed to convert DJVU file to PDF file: %s\n", r.file, r.err.Error())
-		} else {
-			fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", r.file)
-		}
+		fmt.Println(r.String())
 		// Restart a spinner
 		spinner = NewSpinner(d)
 	}
@@ -44,10 +49,10 @@ func main() {
 
 func convert(file string) error {
 	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return err
+		return errors.New("no such file or directory")
 	}
 	if _, err := exec.Command("djvu2pdf", file).Output(); err != nil {
-		return err
+		return fmt.Errorf("failed to convert DJVU file to PDF file: %v", err)
 	}
 	return nil
 }
