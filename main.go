@@ -36,11 +36,13 @@ func main() {
 		}(file)
 	}
 
-	for range fileNames {
+	length := len(fileNames)
+	width := length/10 + 1
+	for i := 1; i <= length; i++ {
 		r := <-c
 		// Stop the spinner temporarily
 		spinner.Stop()
-		fmt.Println(r.String())
+		fmt.Printf("[%*d/%d] %s\n", width, i, length, r.String())
 		// Restart a spinner
 		spinner = NewSpinner(d)
 	}
