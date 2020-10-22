@@ -1,25 +1,63 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"time"
 )
 
-func main() {
-	file := os.Args[1]
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		log.Fatal(err)
+type result struct {
+	file string
+	err  error
+}
+
+func (r *result) String() string {
+	if r.err != nil {
+		return fmt.Sprintf("Fail\tconvert %s: %v", r.file, r.err)
 	}
-	spinner := NewSpinner(100 * time.Millisecond)
-	if _, err := exec.Command("djvu2pdf", file).Output(); err != nil {
-		log.Fatal(err)
+	return fmt.Sprintf("ok  \tconvert %s: DJVU file converted successfully to PDF file", r.file)
+}
+
+func main() {
+	fileNames := os.Args[1:]
+	c := make(chan result, len(fileNames))
+
+	// Start the first spinner
+	d := 100 * time.Millisecond
+	spinner := NewSpinner(d)
+
+	for _, file := range fileNames {
+		go func(file string) {
+			var r result
+			r.file, r.err = file, convert(file)
+			c <- r
+		}(file)
+	}
+
+	length := len(fileNames)
+	width := length/10 + 1
+	for i := 1; i <= length; i++ {
+		r := <-c
+		// Stop the spinner temporarily
+		spinner.Stop()
+		fmt.Printf("[%*d/%d] %s\n", width, i, length, r.String())
+		// Restart a spinner
+		spinner = NewSpinner(d)
 	}
 	spinner.Stop()
-	fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", file)
+}
+
+func convert(file string) error {
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		return errors.New("no such file or directory")
+	}
+	if _, err := exec.Command("djvu2pdf", file).Output(); err != nil {
+		return fmt.Errorf("failed to convert DJVU file to PDF file: %v", err)
+	}
+	return nil
 }
 
 type Spinner struct {
