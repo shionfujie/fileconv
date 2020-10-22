@@ -11,9 +11,11 @@ import (
 
 func main() {
 	file := os.Args[1]
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		log.Fatal(err)
+	}
 	spinner := NewSpinner(100 * time.Millisecond)
-	_, err := exec.Command("djvu2pdf", file).Output()
-	if err != nil {
+	if _, err := exec.Command("djvu2pdf", file).Output(); err != nil {
 		log.Fatal(err)
 	}
 	spinner.Stop()
