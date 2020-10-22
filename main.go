@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -51,8 +50,8 @@ func main() {
 }
 
 func convert(file string) error {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return errors.New("no such file or directory")
+	if _, err := os.Stat(file); err != nil {
+		return err.(*os.PathError).Err
 	}
 	if _, err := exec.Command("djvu2pdf", file).Output(); err != nil {
 		return fmt.Errorf("failed to convert DJVU file to PDF file: %v", err)
