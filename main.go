@@ -3,23 +3,51 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"time"
 )
 
+type result struct {
+	file string
+	err error
+}
+
 func main() {
-	file := os.Args[1]
+	fileNames := os.Args[1:]
+	c := make(chan result, len(fileNames))
+	
+	for _, file := range fileNames {
+		go func(file string) {
+			var r result
+			r.file, r.err = file, convert(file)
+			c <-r
+		}(file)
+	}
+
+	for range fileNames {
+		r := <- c
+		if r.err != nil {
+			fmt.Println(r.err)
+			continue
+		}
+		fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", r.file)
+	}
+	
+	// spinner := NewSpinner(100 * time.Millisecond)
+	
+	// spinner.Stop()
+	
+}
+
+func convert(file string) error {
 	if _, err := os.Stat(file); os.IsNotExist(err) {
-		log.Fatal(err)
+		return err
 	}
-	spinner := NewSpinner(100 * time.Millisecond)
 	if _, err := exec.Command("djvu2pdf", file).Output(); err != nil {
-		log.Fatal(err)
+		return err
 	}
-	spinner.Stop()
-	fmt.Printf("convert %s: DJVU file converted successfully to PDF file\n", file)
+	return nil
 }
 
 type Spinner struct {
