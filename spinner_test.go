@@ -12,16 +12,14 @@ func TestSpinner(t *testing.T) {
 	delta := 100 * time.Millisecond
 	var rb bytes.Buffer
 	spinner := NewFspinner(&rb, delta)
-	ticker := spinner.t
 
 	expected := "\n"
 	if rb.String() != expected {
 		t.Errorf("got %q, expected immediate newline", rb.String())
 	}
 	for i := 0; i < count; i++ {
-		// Wait for spinner to pass first.
-		time.Sleep(delta/ 10)
-		<-ticker.C
+		// Let the spinner pass first.
+		time.Sleep(delta * 101/ 100)
 		// Since the terminal is tty, we use ansi escaping to animate
 		// a spinner.
 		r := `-\|/`[i%4]
@@ -44,5 +42,4 @@ func TestSpinner(t *testing.T) {
 			break
 		}
 	}
-	ticker.Stop()
 }

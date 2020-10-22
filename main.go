@@ -22,7 +22,6 @@ func main() {
 
 type Spinner struct {
 	w    io.Writer
-	t    *time.Ticker
 	done chan struct{}
 }
 
@@ -33,28 +32,28 @@ func NewSpinner(d time.Duration) *Spinner {
 func NewFspinner(w io.Writer, d time.Duration) *Spinner {
 	s := &Spinner{
 		w:    w,
-		t:    time.NewTicker(d),
 		done: make(chan struct{}, 1),
 	}
-	startSpinner(s)
+	startSpinner(s, d)
 	return s
 }
 
 func (s *Spinner) Stop() {
-	s.t.Stop()
 	fmt.Fprintf(s.w, "\033[F")
 	s.done <- struct{}{}
 }
 
-func startSpinner(s *Spinner) {
+func startSpinner(s *Spinner, d time.Duration) {
+	t := time.NewTicker(d)
 	fmt.Fprintln(s.w)
 	go func() {
 	loop:
 		for i := 0; ; i = (i + 1) % 4 {
 			select {
-			case <-s.t.C:
+			case <-t.C:
 				fmt.Fprintf(s.w, "\033[F%c\n", `-\|/`[i])
 			case <-s.done:
+				t.Stop()
 				break loop
 			}
 		}
