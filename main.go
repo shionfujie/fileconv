@@ -16,9 +16,9 @@ type result struct {
 
 func (r *result) String() string {
 	if r.err != nil {
-		return fmt.Sprintf("convert %s: %v", r.file, r.err)
+		return fmt.Sprintf("Fail\tconvert %s: %v", r.file, r.err)
 	}
-	return fmt.Sprintf("convert %s: DJVU file converted successfully to PDF file", r.file)
+	return fmt.Sprintf("ok  \tconvert %s: DJVU file converted successfully to PDF file", r.file)
 }
 
 func main() {
