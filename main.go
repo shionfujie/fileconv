@@ -25,6 +25,7 @@ func main() {
 	fileNames := os.Args[1:]
 	c := make(chan result, len(fileNames))
 
+	// Start the first spinner
 	d := 100 * time.Millisecond
 	spinner := NewSpinner(d)
 
