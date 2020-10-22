@@ -10,10 +10,10 @@ import (
 func TestSpinner(t *testing.T) {
 	count := 10
 	delta := 100 * time.Millisecond
-
 	var rb bytes.Buffer
 	spinner := NewFspinner(&rb, delta)
 	ticker := spinner.t
+
 	expected := "\n"
 	if rb.String() != expected {
 		t.Errorf("got %q, expected immediate newline", rb.String())
@@ -27,7 +27,7 @@ func TestSpinner(t *testing.T) {
 		r := `-\|/`[i%4]
 		expected = fmt.Sprintf("%s\033[F%c\n", expected, r)
 		if rb.String() != expected {
-			t.Errorf("after %d ticks: got %q, expected %q", i, rb.String(), expected)
+			t.Errorf("after %d ticks: got %q, expected %q", i + 1, rb.String(), expected)
 		}
 	}
 	spinner.Stop()
