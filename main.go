@@ -8,21 +8,9 @@ import (
 	"time"
 )
 
-type result struct {
-	file string
-	err  error
-}
-
-func (r *result) String() string {
-	if r.err != nil {
-		return fmt.Sprintf("Fail\tconvert %s: %v", r.file, r.err)
-	}
-	return fmt.Sprintf("ok  \tconvert %s: DJVU file converted successfully to PDF file", r.file)
-}
-
 func main() {
 	fileNames := os.Args[1:]
-	c := make(chan result, len(fileNames))
+	c := make(chan string, len(fileNames))
 
 	// Start the first spinner
 	d := 100 * time.Millisecond
@@ -30,23 +18,29 @@ func main() {
 
 	for _, file := range fileNames {
 		go func(file string) {
-			var r result
-			r.file, r.err = file, convert(file)
-			c <- r
+			err := convert(file)
+			c <- formatMassage(file, err)
 		}(file)
 	}
 
 	length := len(fileNames)
 	width := length/10 + 1
 	for i := 1; i <= length; i++ {
-		r := <-c
+		s := <-c
 		// Stop the spinner temporarily
 		spinner.Stop()
-		fmt.Printf("[%*d/%d] %s\n", width, i, length, r.String())
+		fmt.Printf("[%*d/%d] %s\n", width, i, length, s)
 		// Restart a spinner
 		spinner = NewSpinner(d)
 	}
 	spinner.Stop()
+}
+
+func formatMassage(file string, err error) string {
+	if err != nil {
+		return fmt.Sprintf("Fail\tconvert %s: %v", file, err)
+	}
+	return fmt.Sprintf("ok  \tconvert %s: DJVU file converted successfully to PDF file", file)
 }
 
 func convert(file string) error {
