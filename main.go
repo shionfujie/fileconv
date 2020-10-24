@@ -10,21 +10,20 @@ import (
 
 func main() {
 	fileNames := os.Args[1:]
-	c := make(chan string, len(fileNames))
+	outputs := make(chan string, len(fileNames))
 
 	spinner := NewSpinner(100 * time.Millisecond)
 	for _, file := range fileNames {
 		go func(file string) {
 			err := convert(file)
-			c <- formatMassage(file, err)
+			outputs <- formatMassage(file, err)
 		}(file)
 	}
 
 	length := len(fileNames)
 	width := length/10 + 1
 	for i := 1; i <= length; i++ {
-		s := <-c
-		spinner.Printf("[%*d/%d] %s\n", width, i, length, s)
+		spinner.Printf("[%*d/%d] %s\n", width, i, length, <-outputs)
 	}
 	spinner.Stop()
 }
