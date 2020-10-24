@@ -12,10 +12,7 @@ func main() {
 	fileNames := os.Args[1:]
 	c := make(chan string, len(fileNames))
 
-	// Start the first spinner
-	d := 100 * time.Millisecond
-	spinner := NewSpinner(d)
-
+	spinner := NewSpinner(100 * time.Millisecond)
 	for _, file := range fileNames {
 		go func(file string) {
 			err := convert(file)
@@ -27,11 +24,7 @@ func main() {
 	width := length/10 + 1
 	for i := 1; i <= length; i++ {
 		s := <-c
-		// Stop the spinner temporarily
-		spinner.Stop()
-		fmt.Printf("[%*d/%d] %s\n", width, i, length, s)
-		// Restart a spinner
-		spinner = NewSpinner(d)
+		spinner.Printf("[%*d/%d] %s\n", width, i, length, s)
 	}
 	spinner.Stop()
 }
@@ -55,6 +48,7 @@ func convert(file string) error {
 
 type Spinner struct {
 	w    io.Writer
+	d    time.Duration
 	done chan struct{}
 }
 
@@ -65,9 +59,10 @@ func NewSpinner(d time.Duration) *Spinner {
 func NewFspinner(w io.Writer, d time.Duration) *Spinner {
 	s := &Spinner{
 		w:    w,
+		d:    d,
 		done: make(chan struct{}, 1),
 	}
-	startSpinner(s, d)
+	startSpinner(s)
 	return s
 }
 
@@ -76,8 +71,16 @@ func (s *Spinner) Stop() {
 	s.done <- struct{}{}
 }
 
-func startSpinner(s *Spinner, d time.Duration) {
-	t := time.NewTicker(d)
+func (s *Spinner) Printf(format string, a ...interface{}) {
+	// Stop the ticker temporarily
+	s.Stop()
+	fmt.Fprintf(s.w, format, a...)
+	// Restart a ticker
+	startSpinner(s)
+}
+
+func startSpinner(s *Spinner) {
+	t := time.NewTicker(s.d)
 	fmt.Fprintln(s.w)
 	go func() {
 	loop:
