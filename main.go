@@ -13,6 +13,7 @@ func main() {
 	outputs := make(chan string, len(fileNames))
 
 	spinner := NewSpinner(100 * time.Millisecond)
+	defer spinner.Stop()
 	for _, file := range fileNames {
 		go func(file string) {
 			err := convert(file)
@@ -25,7 +26,6 @@ func main() {
 	for i := 1; i <= length; i++ {
 		spinner.Printf("[%*d/%d] %s\n", width, i, length, <-outputs)
 	}
-	spinner.Stop()
 }
 
 func formatMassage(file string, err error) string {
