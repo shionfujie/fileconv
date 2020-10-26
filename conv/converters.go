@@ -13,7 +13,7 @@ type Converter struct {
 	TargetType string
 	file       string
 	cmd        *exec.Cmd
-	pathErr    *os.PathError
+	pathErr    error
 }
 
 type cmd struct {
@@ -35,10 +35,16 @@ func NewConverter(file string) (c *Converter) {
 	}
 	c.SourceType = sourceType(file)
 	if _, err := os.Stat(file); err != nil {
-		c.pathErr = err.(*os.PathError)
+		c.pathErr = err.(*os.PathError).Err
 		return
 	}
-	cmd := cmds[c.SourceType]
+
+	cmd, ok := cmds[c.SourceType]
+	if !ok {
+		c.pathErr = fmt.Errorf("unsupported file type %s", c.SourceType)
+		return
+	}
+
 	c.TargetType = cmd.targetType
 	c.cmd = exec.Command(cmd.name, file)
 	return
@@ -50,7 +56,7 @@ func sourceType(file string) string {
 
 func (c *Converter) Convert() error {
 	if c.pathErr != nil {
-		return c.pathErr.Err
+		return c.pathErr
 	}
 	if _, err := c.cmd.Output(); err != nil {
 		return fmt.Errorf("failed to convert %s file to %s file: %v", c.SourceType, c.TargetType, err)
