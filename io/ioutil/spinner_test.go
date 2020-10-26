@@ -13,7 +13,7 @@ func TestSpinner(t *testing.T) {
 	count := 10
 	delta := 100 * time.Millisecond
 	var rb bytes.Buffer
-	spinner := NewFspinner(&rb, delta)
+	s := NewFspinner(&rb, delta)
 
 	expected := "\n"
 	if rb.String() != expected {
@@ -30,7 +30,7 @@ func TestSpinner(t *testing.T) {
 			t.Errorf("after %d ticks: got %q, expected %q", i+1, rb.String(), expected)
 		}
 	}
-	spinner.Stop()
+	s.Stop()
 	// Test tear down escaping.
 	expected = fmt.Sprintf("%s\033[F", expected)
 	if rb.String() != expected {
